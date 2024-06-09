@@ -1,9 +1,25 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const mysql = require('mysql');
 
 const os = require('os');
 
 const app = express();
+
+const conexao = mysql.createConnection({
+    host:'localhost',
+    user:'root',
+    password:'123456',
+    database:'cloud'
+});
+
+conexao.connect(erro => {
+    if (erro) {
+        console.error('Não foi possível se conectar ao banco de dados', erro);
+        return;
+    }
+    console.log('Conexão realizada com sucesso');
+});
 
 app.get(`/`, (request,response)=>{
     return response
@@ -42,5 +58,18 @@ app.get(`/readiness`, (request,response)=>{
             homedir:os.homedir()
         });
 });
+
+app.get(`/consulta-dados`, (request,response)=>{
+    const query = 'SELECT * FROM colaborador';
+    conexao.query(query, (erro, resultado) => {
+        if (erro) {
+            console.error ('Erro ao realizar consulta', erro);
+            resposta.status(500).send('Erro ao consultar os dados');
+            return;
+        }
+        resposta.json(resultado)
+    });
+});
+
 
 module.exports = app;
